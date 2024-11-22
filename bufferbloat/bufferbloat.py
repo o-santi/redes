@@ -110,6 +110,9 @@ def start_ping(net):
     # to see how to do this.
     h1 = net.get('h1')
     proc = h1.popen(f'ping h2 -i 0.1 > {args.dir}/ping.txt', shell=True)
+    (out, err) = proc.communicate()
+    print(out)
+    print(err)
     return proc
 
 def start_webserver(net):
