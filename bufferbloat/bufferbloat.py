@@ -164,11 +164,13 @@ def bufferbloat():
     # loop below useful.
     start_time = time()
     while True:
+        l1 = fetch_html(net)
+        l2 = fetch_html(net)
+        l3 = fetch_html(net)
+        print(f"Latency: {l1} {l2} {l3}")
         # do the measurement (say) 3 times.
         sleep(5)
         now = time()
-        latency = fetch_html(net)
-        print(f"Latency: {latency}")
         delta = now - start_time
         if delta > args.time:
             break
