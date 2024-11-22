@@ -130,7 +130,7 @@ def bufferbloat():
     os.system("sysctl -w net.ipv4.tcp_congestion_control=%s" % args.cong)
     topo = BBTopo()
     net = Mininet(topo=topo, host=CPULimitedHost, link=TCLink)
-    print('hello')
+
     net.start()
     # This dumps the topology and how nodes are interconnected through
     # links.
@@ -166,7 +166,7 @@ def bufferbloat():
         # do the measurement (say) 3 times.
         sleep(5)
         now = time()
-        latency = fetch_html()
+        latency = fetch_html(net)
         print(f"Latency: {latency}")
         delta = now - start_time
         if delta > args.time:

@@ -3,6 +3,8 @@
 # Note: Mininet must be run as root.  So invoke this shell script
 # using sudo.
 
+mn -c # começa deletando o antigo
+
 iperf_port=5001
 
 for qsize in 20 100; do
