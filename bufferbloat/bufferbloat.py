@@ -11,7 +11,7 @@ from time import sleep, time
 from multiprocessing import Process
 from argparse import ArgumentParser
 
-# from monitor import monitor_qlen
+from monitor import monitor_qlen
 
 import sys
 import os
