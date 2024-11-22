@@ -109,10 +109,8 @@ def start_ping(net):
     # matter?)  Measure RTTs every 0.1 second.  Read the ping man page
     # to see how to do this.
     h1 = net.get('h1')
-    proc = h1.popen(f'ping h2 -i 0.1 > {args.dir}/ping.txt', shell=True)
-    (out, err) = proc.communicate()
-    print(out)
-    print(err)
+    h2 = net.get('h2')
+    proc = h1.popen(f'ping {h2.IP()} -i 0.1 > {args.dir}/ping.txt', shell=True)
     return proc
 
 def start_webserver(net):
@@ -123,7 +121,7 @@ def start_webserver(net):
 
 def fetch_html(net):
     h2 = net.get('h2')
-    proc = h2.popen("curl -o /dev/null -s -w %{time_total} h2")
+    proc = h2.popen(f"curl -o /dev/null -s -w %{time_total} {h2.IP()}")
     (output, error) = proc.communicate()
     return float(output)
 
