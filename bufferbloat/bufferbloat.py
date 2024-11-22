@@ -108,7 +108,7 @@ def start_ping(net):
     # TODO: Start a ping train from h1 to h2 (or h2 to h1, does it
     # matter?)  Measure RTTs every 0.1 second.  Read the ping man page
     # to see how to do this.
-
+    h1 = net.get('h1')
     proc = h1.popen(f'ping h2 -i 0.1 > {args.dir}/ping.txt', shell=True)
     return proc
 
