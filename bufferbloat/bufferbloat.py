@@ -121,7 +121,7 @@ def start_webserver(net):
 
 def fetch_html(net):
     h2 = net.get('h2')
-    proc = h2.popen(f"curl -o /dev/null -s -w %{time_total} {h2.IP()}")
+    proc = h2.popen(f"curl -o /dev/null -s -w %{{time_total}} {h2.IP()}")
     (output, error) = proc.communicate()
     return float(output)
 
