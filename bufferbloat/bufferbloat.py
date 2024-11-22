@@ -90,7 +90,7 @@ def start_iperf(net):
 
     # TODO: Start the iperf client on h1.  Ensure that you create a
     # long lived TCP flow.
-    client = h1.popen(f"iperf -c -t {args.time}")
+    client = h1.popen(f"iperf -c {h2.IP()} -t {args.time}")
     # preciso setar a window(-w)? 
     #o 300 é pra que o fluxo TCP seja de 300 segundos=5 minutos
     #acho que isso é longo o suficiente
