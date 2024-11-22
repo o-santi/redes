@@ -9,7 +9,7 @@ for qsize in 20 100; do
     dir=bb-q$qsize
 
     # TODO: Run bufferbloat.py here...
-    python3 bufferbloat.py --bw-net=1.5 --bw-host=1000 --delay=20 -d=$dir --maxq=$qsize
+    python3 bufferbloat.py --bw-net=1.5 --bw-host=1000 --delay=20 --dir=$dir --maxq=$qsize --time=90
 
     # TODO: Ensure the input file names match the ones you use in
     # bufferbloat.py script.  Also ensure the plot file names match

@@ -90,7 +90,7 @@ def start_iperf(net):
 
     # TODO: Start the iperf client on h1.  Ensure that you create a
     # long lived TCP flow.
-    # client = h1.popen("iperf -c -t 300")??
+    client = h1.popen(f"iperf -c -t {args.time}")
     # preciso setar a window(-w)? 
     #o 300 é pra que o fluxo TCP seja de 300 segundos=5 minutos
     #acho que isso é longo o suficiente
@@ -109,16 +109,20 @@ def start_ping(net):
     # matter?)  Measure RTTs every 0.1 second.  Read the ping man page
     # to see how to do this.
 
-    # Hint: Use host.popen(cmd, shell=True).  If you pass shell=True
-    # to popen, you can redirect cmd's output using shell syntax.
-    # i.e. ping ... > /path/to/ping.
-    pass
+    proc = h1.popen(f'ping h2 -i 0.1 > {args.dir}/ping.txt', shell=True)
+    return proc
 
 def start_webserver(net):
     h1 = net.get('h1')
     proc = h1.popen("python webserver.py", shell=True)
     sleep(1)
     return [proc]
+
+def fetch_html(net):
+    h2 = net.get('h2')
+    proc = h2.popen("curl -o /dev/null -s -w %{time_total} h2")
+    (output, error) = proc.communicate()
+    return float(output)
 
 def bufferbloat():
     if not os.path.exists(args.dir):
@@ -143,7 +147,9 @@ def bufferbloat():
                       outfile='%s/q.txt' % (args.dir))
 
     # TODO: Start iperf, webservers, etc.
-    # start_iperf(net)
+    start_iperf(net)
+    start_ping(net)
+    start_webserver(net)
 
     # TODO: measure the time it takes to complete webpage transfer
     # from h1 to h2 (say) 3 times.  Hint: check what the following
@@ -160,10 +166,13 @@ def bufferbloat():
         # do the measurement (say) 3 times.
         sleep(5)
         now = time()
+        latency = fetch_html()
+        print(f"Latency: {latency}")
         delta = now - start_time
         if delta > args.time:
             break
         print("%.1fs left..." % (args.time - delta))
+
 
     # TODO: compute average (and standard deviation) of the fetch
     # times.  You don't need to plot them.  Just note it in your
