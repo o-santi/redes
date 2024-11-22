@@ -120,10 +120,10 @@ def start_webserver(net):
     return [proc]
 
 def fetch_html(net):
+    h1 = net.get('h1')
     h2 = net.get('h2')
     proc = h2.popen(f"curl -o /dev/null -s -w %{{time_total}} {h1.IP()}")
     (output, error) = proc.communicate()
-    print(output)
     return float(output)
 
 def bufferbloat():
