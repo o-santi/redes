@@ -87,10 +87,16 @@ def start_iperf(net):
     # that the TCP flow is not receiver window limited.  If it is,
     # there is a chance that the router buffer may not get filled up.
     server = h2.popen("iperf -s -w 16m")
+    print("server ok")
 
     # TODO: Start the iperf client on h1.  Ensure that you create a
     # long lived TCP flow.
+    print(f"h2 IP: {h2.IP()}")
+
     client = h1.popen(f"iperf -c {h2.IP()} -t {args.time}")
+    (output, error) = client.communicate()
+    print(output)
+    print("client ok")
     # preciso setar a window(-w)? 
     #o 300 é pra que o fluxo TCP seja de 300 segundos=5 minutos
     #acho que isso é longo o suficiente
