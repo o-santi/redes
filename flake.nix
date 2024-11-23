@@ -24,6 +24,12 @@
         inetutils
         libcgroup
         python-env
+        (texlive.combine {
+          inherit (texlive) scheme-basic wrapfig etoolbox xcolor
+            enumitem supertabular titlesec multirow parskip
+            biblatex fontawesome fontawesome5
+          ;
+        })
       ];
     };
   };
