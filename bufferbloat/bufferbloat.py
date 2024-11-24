@@ -94,11 +94,11 @@ def start_iperf(net):
     # long lived TCP flow.
     #print(f"h2 IP: {h2.IP()}")
 
-    client = h1.popen(f"iperf -c {h2.IP()} -t {args.time}")
-    (output, error) = client.communicate()
-    print(output)
-    print("\n\n")
-    print(error)
+    client = h1.popen(f"iperf -c {h2.IP()} -t {args.time}") 
+    #(output, error) = client.communicate()
+    #print(output)
+    #print("\n\n")
+    #print(error)
     print("client ok")
     # preciso setar a window(-w)? 
     #o 300 é pra que o fluxo TCP seja de 300 segundos=5 minutos
@@ -136,6 +136,9 @@ def fetch_html(net):
     return float(output)
 
 def bufferbloat():
+    
+
+
     if not os.path.exists(args.dir):
         os.makedirs(args.dir)
     os.system("sysctl -w net.ipv4.tcp_congestion_control=%s" % args.cong)
@@ -159,6 +162,7 @@ def bufferbloat():
 
     # TODO: Start iperf, webservers, etc.
     start_iperf(net)
+    #sleep(50) 
     start_ping(net)
     start_webserver(net)
 
@@ -173,11 +177,15 @@ def bufferbloat():
     # Hint: have a separate function to do this and you may find the
     # loop below useful.
     start_time = time()
+    rtts = 0
+    n=0
     while True:
         l1 = fetch_html(net)
         l2 = fetch_html(net)
         l3 = fetch_html(net)
         print(f"Latency: {l1} {l2} {l3}")
+        rtts += l1+l2+l3
+        n+=3
         # do the measurement (say) 3 times.
         sleep(5)
         now = time()
@@ -185,6 +193,10 @@ def bufferbloat():
         if delta > args.time:
             break
         print("%.1fs left..." % (args.time - delta))
+
+    avg = rtts/n
+    
+    dev = math.sqrt()
 
 
     # TODO: compute average (and standard deviation) of the fetch
@@ -194,7 +206,7 @@ def bufferbloat():
     # Hint: The command below invokes a CLI which you can use to
     # debug.  It allows you to run arbitrary commands inside your
     # emulated hosts h1 and h2.
-    # CLI(net)
+    #CLI(net)
 
     qmon.terminate()
     net.stop()
