@@ -19,17 +19,17 @@ import math
 
 parser = ArgumentParser(description="Bufferbloat tests")
 parser.add_argument('--bw-host', '-B',
-                    type=float,
+                    type=float, 
                     help="Bandwidth of host links (Mb/s)",
                     default=1000)
 
 parser.add_argument('--bw-net', '-b',
-                    type=float,
+                    type=float,  
                     help="Bandwidth of bottleneck (network) link (Mb/s)",
                     required=True)
 
 parser.add_argument('--delay',
-                    type=float,
+                    type=int,
                     help="Link propagation delay (ms)",
                     required=True)
 
@@ -69,11 +69,12 @@ class BBTopo(Topo):
 
         # Here I have created a switch.  If you change its name, its
         # interface names will change from s0-eth1 to newname-eth1.
-        switch = self.addSwitch('s0', max_queue_size=args.maxq) #100 pacotes
-                                                          #esse é o nome do parametro?
-
-        self.addLink(host1,switch, bw = args.bw_host, delay = args.delay) 
-        self.addLink(switch, host2, bw = args.bw_net, delay = args.delay)
+        switch = self.addSwitch('s0') #
+                                                          
+        #aparentemente o delay é (ex:) '20ms'
+        self.addLink(host1,switch, bw = args.bw_host, delay = f"{args.delay}ms", max_queue_size=args.maxq)
+        #self.addLink(host1,switch, bw = args.bw_host, delay = args.delay, max_queue_size=args.maxq) 
+        self.addLink(switch, host2, bw = args.bw_net, delay = f"{args.delay}ms", max_queue_size=args.maxq) #colocar maxqueue aqui?
 
 # Simple wrappers around monitoring utilities.  You are welcome to
 # contribute neatly written (using classes) monitoring scripts for
@@ -87,10 +88,18 @@ def start_iperf(net):
     # that the TCP flow is not receiver window limited.  If it is,
     # there is a chance that the router buffer may not get filled up.
     server = h2.popen("iperf -s -w 16m")
+    print("server ok")
 
     # TODO: Start the iperf client on h1.  Ensure that you create a
     # long lived TCP flow.
-    client = h1.popen(f"iperf -c {h2.IP()} -t {args.time}")
+    #print(f"h2 IP: {h2.IP()}")
+
+    client = h1.popen(f"iperf -c {h2.IP()} -t {args.time}") 
+    #(output, error) = client.communicate()
+    #print(output)
+    #print("\n\n")
+    #print(error)
+    print("client ok")
     # preciso setar a window(-w)? 
     #o 300 é pra que o fluxo TCP seja de 300 segundos=5 minutos
     #acho que isso é longo o suficiente
@@ -117,7 +126,7 @@ def start_webserver(net):
     h1 = net.get('h1')
     proc = h1.popen("python webserver.py", shell=True)
     sleep(1)
-    return [proc]
+    return proc
 
 def fetch_html(net):
     h1 = net.get('h1')
@@ -127,6 +136,9 @@ def fetch_html(net):
     return float(output)
 
 def bufferbloat():
+    
+
+
     if not os.path.exists(args.dir):
         os.makedirs(args.dir)
     os.system("sysctl -w net.ipv4.tcp_congestion_control=%s" % args.cong)
@@ -150,8 +162,8 @@ def bufferbloat():
 
     # TODO: Start iperf, webservers, etc.
     start_iperf(net)
-    start_ping(net)
-    start_webserver(net)
+    ping_proc = start_ping(net)
+    webserver = start_webserver(net)
 
     # TODO: measure the time it takes to complete webpage transfer
     # from h1 to h2 (say) 3 times.  Hint: check what the following
@@ -164,11 +176,15 @@ def bufferbloat():
     # Hint: have a separate function to do this and you may find the
     # loop below useful.
     start_time = time()
+    rtts = 0
+    n=0
     while True:
         l1 = fetch_html(net)
         l2 = fetch_html(net)
         l3 = fetch_html(net)
         print(f"Latency: {l1} {l2} {l3}")
+        rtts += l1+l2+l3
+        n+=3
         # do the measurement (say) 3 times.
         sleep(5)
         now = time()
@@ -176,6 +192,10 @@ def bufferbloat():
         if delta > args.time:
             break
         print("%.1fs left..." % (args.time - delta))
+
+    avg = rtts/n
+    
+    dev = math.sqrt()
 
 
     # TODO: compute average (and standard deviation) of the fetch
@@ -185,8 +205,11 @@ def bufferbloat():
     # Hint: The command below invokes a CLI which you can use to
     # debug.  It allows you to run arbitrary commands inside your
     # emulated hosts h1 and h2.
-    # CLI(net)
-
+    #CLI(net)
+    
+    ping_proc.kill()
+    webserver.kill()
+    
     qmon.terminate()
     net.stop()
     # Ensure that all processes you create within Mininet are killed.
