@@ -18,6 +18,18 @@
 
 \section{Introdução}
 
+Neste relatório iremos responder as perguntas relacionadas à parte 2 do trabalho final. O código está disponível no seguinte repositório do github: {\color{blue} \href{https://github.com/o-santi/redes}{github.com/o-santi/redes}}.
+
+Para reproduzir os resultados, deve-se instanciar uma máquina virtual Ubuntu usando Vagrant, assim como descrito em {\color{blue} \href{https://github.com/kaichengyan/mininet-vagrant}{github.com/kaichengyan/mininet-vagrant}}. Uma vez dentro da VM, clonamos o repositório git para uma pasta interna, e rodamos o arquivo \texttt{run.sh}.
+\begin{verbatim}
+  git clone https://github.com/o-santi/redes.git ~/redes
+  cd ~/redes
+  chmod +x ./bufferbloat/run.sh
+  sudo ./bufferbloat/run.sh
+\end{verbatim}
+
+Isto irá rodar os dois casos de teste (\texttt{max\_queue=20} e \texttt{max\_queue=100}) e gerar os gráficos citados neste relatório.
+
 \section{Parte 2}
 
 \subsection{Qual é o tempo médio de busca da página da web e seu desvio padrão quando q=20 e q=100?}

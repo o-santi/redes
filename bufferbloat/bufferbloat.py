@@ -126,7 +126,7 @@ def start_webserver(net):
     h1 = net.get('h1')
     proc = h1.popen("python webserver.py", shell=True)
     sleep(1)
-    return [proc]
+    return proc
 
 def fetch_html(net):
     h1 = net.get('h1')
@@ -162,9 +162,8 @@ def bufferbloat():
 
     # TODO: Start iperf, webservers, etc.
     start_iperf(net)
-    #sleep(50) 
-    start_ping(net)
-    start_webserver(net)
+    ping_proc = start_ping(net)
+    webserver = start_webserver(net)
 
     # TODO: measure the time it takes to complete webpage transfer
     # from h1 to h2 (say) 3 times.  Hint: check what the following
@@ -207,7 +206,10 @@ def bufferbloat():
     # debug.  It allows you to run arbitrary commands inside your
     # emulated hosts h1 and h2.
     #CLI(net)
-
+    
+    ping_proc.kill()
+    webserver.kill()
+    
     qmon.terminate()
     net.stop()
     # Ensure that all processes you create within Mininet are killed.
