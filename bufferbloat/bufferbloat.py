@@ -19,17 +19,17 @@ import math
 
 parser = ArgumentParser(description="Bufferbloat tests")
 parser.add_argument('--bw-host', '-B',
-                    type=float,
+                    type=float, 
                     help="Bandwidth of host links (Mb/s)",
                     default=1000)
 
 parser.add_argument('--bw-net', '-b',
-                    type=float,
+                    type=float,  
                     help="Bandwidth of bottleneck (network) link (Mb/s)",
                     required=True)
 
 parser.add_argument('--delay',
-                    type=float,
+                    type=int,
                     help="Link propagation delay (ms)",
                     required=True)
 
@@ -69,11 +69,12 @@ class BBTopo(Topo):
 
         # Here I have created a switch.  If you change its name, its
         # interface names will change from s0-eth1 to newname-eth1.
-        switch = self.addSwitch('s0', max_queue_size=args.maxq) #100 pacotes
-                                                          #esse é o nome do parametro?
-
-        self.addLink(host1,switch, bw = args.bw_host, delay = args.delay) 
-        self.addLink(switch, host2, bw = args.bw_net, delay = args.delay)
+        switch = self.addSwitch('s0') #
+                                                          
+        #aparentemente o delay é (ex:) '20ms'
+        self.addLink(host1,switch, bw = args.bw_host, delay = f"{args.delay}ms", max_queue_size=args.maxq)
+        #self.addLink(host1,switch, bw = args.bw_host, delay = args.delay, max_queue_size=args.maxq) 
+        self.addLink(switch, host2, bw = args.bw_net, delay = f"{args.delay}ms", max_queue_size=args.maxq) #colocar maxqueue aqui?
 
 # Simple wrappers around monitoring utilities.  You are welcome to
 # contribute neatly written (using classes) monitoring scripts for
@@ -87,10 +88,18 @@ def start_iperf(net):
     # that the TCP flow is not receiver window limited.  If it is,
     # there is a chance that the router buffer may not get filled up.
     server = h2.popen("iperf -s -w 16m")
+    print("server ok")
 
     # TODO: Start the iperf client on h1.  Ensure that you create a
     # long lived TCP flow.
+    #print(f"h2 IP: {h2.IP()}")
+
     client = h1.popen(f"iperf -c {h2.IP()} -t {args.time}")
+    (output, error) = client.communicate()
+    print(output)
+    print("\n\n")
+    print(error)
+    print("client ok")
     # preciso setar a window(-w)? 
     #o 300 é pra que o fluxo TCP seja de 300 segundos=5 minutos
     #acho que isso é longo o suficiente
