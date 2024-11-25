@@ -4,6 +4,7 @@
 \usepackage[scale=0.9]{geometry}
 \usepackage{xcolor}
 \usepackage{graphicx}
+\usepackage{amsmath}
 
 \title{Teleprocessamento e Redes - Relatório do trabalho final}
 \author{
@@ -60,14 +61,26 @@ Já no caso \code{q=100}, o tempo médio é de 9,96 segundos, com um desvio padr
 
 \subsection{Por que você vê uma diferença nos tempos de busca de páginas da Web com buffers de roteador curtos e grandes?}
 
-A diferença pode ser 
+A diferença pode ser explicada pela maior quantidade de pacotes que acabam entrando na fila, fazendo com que a janela de congestão da conexão TCP aumente, gerando maior contenção entre os pacotes - e portanto, fazendo com que os pacotes tenham de esperar mais na fila.
+
+Ao diminuir o tamanho da fila para 20, não há mais tanta congestão entre os pacotes, fazendo com que o tempo que um pacote deve esperar na fila seja reduzido.
 
 \subsection{Bufferbloat pode ocorrer em outros lugares, como sua placa de interface de rede (NIC). Verifique a saída de ifconfig eth0 de sua VM mininet. Qual é o comprimento (máximo) da fila de transmissão na interface de rede relatada pelo ifconfig? Para esse tamanho de fila, se você assumir que a fila é “drenada” a 100 Mb/s, qual é o tempo máximo que um pacote pode esperar na fila antes de sair da NIC?
 }
 
+Rodando \code{h1 ifconfig} de dentro da mininet, vemos que o parâmetro \code{txqueuelen} da interface principal \code{h1-eth0} é de 1000 pacotes, com \code{mtu=1500 bytes}.
+
+Isso significa que, se um pacote entrar na última posição da fila, ele deve esperar todos os 999 pacotes transmitirem, e depois esperar o tempo da sua própria transmissão. O tempo de transmissão de um pacote, na velocidade de \code{100Mb/s} é de $\frac{1000 * 1500 * 8}{100.000.000} \text{ segundos} = \frac{15 * 8}{1000} \text{ segundos} \approx 0,12 \text{ segundos} $. 
+
 \subsection{Como o RTT relatado pelo ping varia com o tamanho da fila? Descreva a relação entre os dois.}
 
 \subsection{Identifique e descreva duas maneiras de mitigar o problema de bufferbloat.}
+
+De modo geral, técnicas para mitigar o \textit{bufferbloat} podem ser separadas em duas categorias: as que visam melhorar a rede e as que visam melhorar as pontas da conexão.
+
+Dos que visam melhorar a rede, vale ressaltar os algorítmos \code{CoDel} (\textit{Controled Delay}) e sua melhoria \code{FQ-Codel} (\textit{Fair/Flow Queue CoDel}), que está dentro da categoria de algoritmos de \textit{Active Queue Management} (\code{AQM}). Esse algoritmo busca controlar o limite do delay que os pacotes experienciam nas filas dos roteadores para um máximo de 5 millisegundos. Caso o número de pacotes aumente rapidamente, de forma que o delay passe desse \textit{threshold}, pacotes são descartados da fila até que o delay esteja dentro do limite aceitável.
+
+Dos que visam melhorar as pontas da conexão, destaca-se uma implementação do protocolo TCP utilizando um algoritmo de congestão diferente do \code{Reno}: o \textit{Bottleneck Bandwidth and Round-trip propagation time} (\code{BBR}). Diferentemente do \code{Reno}, que utiliza a perda de pacotes para detectar congestionamento e baixas taixas de transmissão, o \code{BBR} constroi um modelo da rede, utilizandos amostras de pacotes para medir a taxa de transmissão e o \textit{Round Trip Time} (\code{RTT}).
 
 %% \section{Parte 3}
 
