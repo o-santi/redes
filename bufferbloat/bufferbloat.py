@@ -177,28 +177,15 @@ def bufferbloat():
     # Hint: have a separate function to do this and you may find the
     # loop below useful.
     start_time = time()
-    soma_rtts = 0
     lista_rtts = []
-    n=0
-    while True:
-        l1 = fetch_html(net)
-        l2 = fetch_html(net)
-        l3 = fetch_html(net)
-        print(f"Latency: {l1} {l2} {l3}")
-        lista_rtts.append(l1)
-        lista_rtts.append(l2)
-        lista_rtts.append(l3)
-        soma_rtts += l1+l2+l3
-        n+=3
-        # do the measurement (say) 3 times.
+    while (time() - start_time) < args.time:
+        for i in range(3):
+            rtt = fetch_html(net)
+            lista_rtts.append(rtt)
         sleep(5)
-        now = time()
-        delta = now - start_time
-        if delta > args.time:
-            break
-        print("%.1fs left..." % (args.time - delta))
+        print("%.1fs left..." % (args.time - time()))
 
-    avg = soma_rtts/n
+    avg = sum(list_rtts) / len(list_rtts)
     print(f"Media: {avg}")
 
     dev = sum((rtt - avg)**2 for rtt in lista_rtts) / len(lista_rtts)
