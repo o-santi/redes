@@ -3,12 +3,15 @@
 \usepackage[unicode, draft=false]{hyperref}
 \usepackage[scale=0.9]{geometry}
 \usepackage{xcolor}
+\usepackage{graphicx}
 
 \title{Teleprocessamento e Redes - Relatório do trabalho final}
 \author{
   Leonardo Ribeiro Santiago (120036072) \\
   João Matheus Nascimento Gonçálves (117209640) \\
   Esteves Emmanuel Melo Ferreira (120023786) }
+
+\newcommand{\code}[1]{\texttt{#1}}
 
 \date{}
 
@@ -20,21 +23,44 @@
 
 Neste relatório iremos responder as perguntas relacionadas à parte 2 do trabalho final. O código está disponível no seguinte repositório do github: {\color{blue} \href{https://github.com/o-santi/redes}{github.com/o-santi/redes}}.
 
-Para reproduzir os resultados, deve-se instanciar uma máquina virtual Ubuntu usando Vagrant, assim como descrito em {\color{blue} \href{https://github.com/kaichengyan/mininet-vagrant}{github.com/kaichengyan/mininet-vagrant}}. Uma vez dentro da VM, clonamos o repositório git para uma pasta interna, e rodamos o arquivo \texttt{run.sh}.
+Para reproduzir os resultados, deve-se instanciar uma máquina virtual Ubuntu usando Vagrant, assim como descrito em {\color{blue} \href{https://github.com/kaichengyan/mininet-vagrant}{github.com/kaichengyan/mininet-vagrant}}. Uma vez dentro da VM, clonamos o repositório git para uma pasta interna, e rodamos o arquivo \code{run.sh}.
 \begin{verbatim}
   git clone https://github.com/o-santi/redes.git ~/redes
-  cd ~/redes
-  chmod +x ./bufferbloat/run.sh
-  sudo ./bufferbloat/run.sh
+  cd ~/redes/bufferbloat
+  chmod +x ./run.sh
+  sudo ./run.sh
 \end{verbatim}
 
-Isto irá rodar os dois casos de teste (\texttt{max\_queue=20} e \texttt{max\_queue=100}) e gerar os gráficos citados neste relatório.
+Isto irá rodar os dois casos de teste (\code{max\_queue=20} e \code{max\_queue=100}) e gerar os gráficos citados neste relatório.
 
 \section{Parte 2}
 
 \subsection{Qual é o tempo médio de busca da página da web e seu desvio padrão quando q=20 e q=100?}
 
+No caso \code{q=20}, o tempo médio de busca da página é de 3,30 segundos, com um desvio padrão de 0,82.
+\begin{figure}[h!]
+  \centering
+  \includegraphics[width=0.5\columnwidth]{./bufferbloat/reno-rtt-q20.png}
+  \caption{Tempo de resposta dos pings ao longo da duração do teste.}
+  \includegraphics[width=0.5\columnwidth]{./bufferbloat/reno-buffer-q20.png}
+  \caption{Número de pacotes na fila do switch ao longo do teste.}
+\end{figure}
+
+\newpage
+
+Já no caso \code{q=100}, o tempo médio é de 9,96 segundos, com um desvio padrão de 3,17.
+
+\begin{figure}[h!]
+  \centering
+  \includegraphics[width=0.5\columnwidth]{./bufferbloat/reno-rtt-q100.png}
+  \caption{Tempo de resposta dos pings ao longo da duração do teste.}
+  \includegraphics[width=0.5\columnwidth]{./bufferbloat/reno-buffer-q100.png}
+  \caption{Número de pacotes na fila do switch ao longo do teste.}
+\end{figure}
+
 \subsection{Por que você vê uma diferença nos tempos de busca de páginas da Web com buffers de roteador curtos e grandes?}
+
+A diferença pode ser 
 
 \subsection{Bufferbloat pode ocorrer em outros lugares, como sua placa de interface de rede (NIC). Verifique a saída de ifconfig eth0 de sua VM mininet. Qual é o comprimento (máximo) da fila de transmissão na interface de rede relatada pelo ifconfig? Para esse tamanho de fila, se você assumir que a fila é “drenada” a 100 Mb/s, qual é o tempo máximo que um pacote pode esperar na fila antes de sair da NIC?
 }
