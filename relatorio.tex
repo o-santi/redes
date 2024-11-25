@@ -61,9 +61,9 @@ Já no caso \code{q=100}, o tempo médio é de 9,96 segundos, com um desvio padr
 
 \subsection{Por que você vê uma diferença nos tempos de busca de páginas da Web com buffers de roteador curtos e grandes?}
 
-A diferença pode ser explicada pela maior quantidade de pacotes que acabam entrando na fila, fazendo com que a janela de congestão da conexão TCP aumente, gerando maior contenção entre os pacotes - e portanto, fazendo com que os pacotes tenham de esperar mais na fila.
+A diferença pode ser explicada pela maior quantidade de pacotes que entram na fila, fazendo com que a janela de congestão da conexão TCP aumente, fazendo com que os pacotes passem mais tempo na fila esperando para serem transmitidos.
 
-Ao diminuir o tamanho da fila para 20, não há mais tanta congestão entre os pacotes, fazendo com que o tempo que um pacote deve esperar na fila seja reduzido.
+Ao diminuir o tamanho da fila para 20, os pacotes param de acumular como antes, fazendo com que o tempo que um pacote deve esperar na fila seja reduzido.
 
 \subsection{Bufferbloat pode ocorrer em outros lugares, como sua placa de interface de rede (NIC). Verifique a saída de ifconfig eth0 de sua VM mininet. Qual é o comprimento (máximo) da fila de transmissão na interface de rede relatada pelo ifconfig? Para esse tamanho de fila, se você assumir que a fila é “drenada” a 100 Mb/s, qual é o tempo máximo que um pacote pode esperar na fila antes de sair da NIC?
 }
@@ -73,6 +73,8 @@ Rodando \code{h1 ifconfig} de dentro da mininet, vemos que o parâmetro \code{tx
 Isso significa que, se um pacote entrar na última posição da fila, ele deve esperar todos os 999 pacotes transmitirem, e depois esperar o tempo da sua própria transmissão. O tempo de transmissão de um pacote, na velocidade de \code{100Mb/s} é de $\frac{1000 * 1500 * 8}{100.000.000} \text{ segundos} = \frac{15 * 8}{1000} \text{ segundos} \approx 0,12 \text{ segundos} $. 
 
 \subsection{Como o RTT relatado pelo ping varia com o tamanho da fila? Descreva a relação entre os dois.}
+
+Tanto no caso \code{q=20} quanto quando \code{q=100}, o \code{RTT} aumenta linearmente com o número de pacotes na fila. Isso se dá pois o tempo de transmissão na rede é constante, dado que o único gargalo é o switch principal. Assim, quanto mais pacotes na fila do switch, maior será o tempo que ele levará para ser transmitido, e portanto maior será o RTT.
 
 \subsection{Identifique e descreva duas maneiras de mitigar o problema de bufferbloat.}
 
