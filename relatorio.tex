@@ -93,9 +93,9 @@ No caso \code{q=20}, o tempo médio de busca da página é de 2,47 segundos, com
 
 \begin{figure}[h!]
   \centering
-  \includegraphics[width=0.5\columnwidth]{./bufferbloat/bb-q20/bbr-rtt.jpg}
+  \includegraphics[width=0.7\columnwidth]{./bufferbloat/bb-q20/bbr-rtt.jpg}
   \caption{Tempo de resposta dos pings ao longo da duração do teste.}
-  \includegraphics[width=0.5\columnwidth]{./bufferbloat/bb-q20/bbr-buffer.jpg}
+  \includegraphics[width=0.7\columnwidth]{./bufferbloat/bb-q20/bbr-buffer.jpg}
   \caption{Número de pacotes na fila do switch ao longo do teste.}
 \end{figure}
 
@@ -105,9 +105,9 @@ No caso \code{q=100}, o tempo médio de busca da página é de 1,78 segundos, co
 
 \begin{figure}[h!]
   \centering
-  \includegraphics[width=0.5\columnwidth]{./bufferbloat/bb-q100/bbr-rtt.jpg}
+  \includegraphics[width=0.7\columnwidth]{./bufferbloat/bb-q100/bbr-rtt.jpg}
   \caption{Tempo de resposta dos pings ao longo da duração do teste.}
-  \includegraphics[width=0.5\columnwidth]{./bufferbloat/bb-q100/bbr-buffer.jpg}
+  \includegraphics[width=0.7\columnwidth]{./bufferbloat/bb-q100/bbr-buffer.jpg}
   \caption{Número de pacotes na fila do switch ao longo do teste.}
 \end{figure}
 
@@ -135,7 +135,32 @@ Para analizar o protocolo QUIC, algumas modificações foram feitas ao arquivo \
 \item A implementação do \code{iperf} fora trocada pelo binário \href{https://github.com/rbruenig/qperf}{qperf}, para medir a performance da rede, já que a ferramenta \code{iperf} não consegue, por padrão, entender o protocolo QUIC.
 \end{enumerate}
 
-Ao rodar o arquivo modificado, geramos as seguintes imagens:
+Ao rodar o arquivo modificado, geramos o seguinte gráfico para o caso \code{q=20}:
 
+\begin{figure}[h!]
+  \centering
+  \includegraphics[width=0.7\columnwidth]{./bufferbloat/bb-q20/quic-rtt.jpg}
+  \caption{Tempo de resposta dos pings ao longo da duração do teste.}
+  \includegraphics[width=0.7\columnwidth]{./bufferbloat/bb-q20/quic-buffer.jpg}
+  \caption{Número de pacotes na fila do switch ao longo do teste.}
+\end{figure}
+
+Vemos que o tempo médio de resposta é de 1,76 segundos, com desvio padrão de 0,15. Respectivamente, para o caso \code{q=100}:
+
+\begin{figure}[h!]
+  \centering
+  \includegraphics[width=0.7\columnwidth]{./bufferbloat/bb-q100/quic-rtt.jpg}
+  \caption{Tempo de resposta dos pings ao longo da duração do teste.}
+  \includegraphics[width=0.7\columnwidth]{./bufferbloat/bb-q100/quic-buffer.jpg}
+  \caption{Número de pacotes na fila do switch ao longo do teste.}
+\end{figure}
+
+Vemos que o tempo médio de resposta é de 3,66 segundos, com desvio padrão de 0,17.
+
+Notamos que, assim como o TCP Reno, o tamanho do buffer ser maior implicou em um tempo médio de resposta maior, ou seja, o bufferbloat ainda está presente. Apesar disso, vemos que as características dos gráficos são muito distintas, através dos gráficos mais pontiagudos com quedas abruptas do número de pacotes no buffer.
+
+Isso pode ser explicado pela diferença entre o protocolo UDP e TCP. No protocolo TCP, há contínua comunicação entre ambos os lados, tanto do que manda os pacotes segmentados quanto pelo lado que os recebe, respondendo com pacotes de reconhecimento de chegada de cada pacote. Por outro lado, pacotes UDP não possuem nenhum tipo de proteção contra corrupção ou perda de pacotes, e podem ser vistos como pacotes isolados na rede. Como o QUIC utiliza UDP, é esperado que a quantidade de pacotes na rede deva ser consideravelmente menor, e como não há resposta do servidor, quando os pacotes são enviados a fila rapidamente esvazia.
+
+Vemos também que, apesar de sofrer do problema de \textit{bufferbloat}, o protocolo QUIC não só é muito mais rápido mas também muito mais estável do que o protocolo TCP Reno para este caso estudado. Assim, ele deve com certeza ser considerado como um forte candidato para casos onde várias conexões devem ser feitas concorrentemente.
 
 \end{document}
