@@ -17,6 +17,8 @@ import sys
 import os
 import math
 
+#OBS: qperf, quiche-client e quiche-server estão na pasta bin
+
 parser = ArgumentParser(description="Bufferbloat tests")
 parser.add_argument('--bw-host', '-B',
                     type=float, 
@@ -83,18 +85,20 @@ class BBTopo(Topo):
 def start_iperf(net):
     h1 = net.get('h1')
     h2 = net.get('h2')
-    print("Starting iperf server...")
+    print("Starting qperf server...")
     # For those who are curious about the -w 16m parameter, it ensures
     # that the TCP flow is not receiver window limited.  If it is,
     # there is a chance that the router buffer may not get filled up.
-    server = h2.popen("iperf -s -w 16m")
+    #server = h2.popen("iperf -s -w 16m")
+    server = h2.popen("./bin/qperf -s -p 4433 -iw 16000000") 
     print("server ok")
 
     # TODO: Start the iperf client on h1.  Ensure that you create a
     # long lived TCP flow.
     #print(f"h2 IP: {h2.IP()}")
 
-    client = h1.popen(f"iperf -c {h2.IP()} -t {args.time}") 
+    #client = h1.popen(f"iperf -c {h2.IP()} -t {args.time}") 
+    client = h1.popen(f"./bin/qperf -c {h2.IP()} -p 4433 -t {args.time}")  
     #(output, error) = client.communicate()
     #print(output)
     #print("\n\n")
@@ -102,7 +106,7 @@ def start_iperf(net):
     print("client ok")
     # preciso setar a window(-w)? 
     #o 300 é pra que o fluxo TCP seja de 300 segundos=5 minutos
-    #acho que isso é longo o suficiente
+w    #acho que isso é longo o suficiente
     #obs: o produto delay x banda (do link gargalo), que limita window size seria
       #1.5Mb/s * 0.02s = 30 Kb 
     # preciso especificar a porta aqui (5001)? 
@@ -124,19 +128,21 @@ def start_ping(net):
 
 def start_webserver(net):
     h1 = net.get('h1')
-    proc = h1.popen("python webserver.py", shell=True)
+    proc = h1.popen("./bin/quiche-server --cert cert.crt --key cert.key --root .", shell=True) 
     sleep(1)
     return [proc]
 
 def fetch_html(net):
     h1 = net.get('h1')
     h2 = net.get('h2')
-    proc = h2.popen(f"curl --http3 -o /dev/null -s -w %{{time_total}} {h1.IP()}")
-    (output, error) = proc.communicate()
-    return float(output)
+    time_init = time()
+    proc = h2.popen(f"./bin/quiche-client -- {h1.IP()}:4433 --no-verify")
+    (output, error) = proc.communicate() 
+    time_final = time()
+    delta = time_final-time_init
+    return delta
 
 def bufferbloat():
-    
     if not os.path.exists(args.dir):
         os.makedirs(args.dir)
     os.system("sysctl -w net.ipv4.tcp_congestion_control=%s" % args.cong)
@@ -175,19 +181,40 @@ def bufferbloat():
     # Hint: have a separate function to do this and you may find the
     # loop below useful.
     start_time = time()
+    soma_rtts = 0
     lista_rtts = []
-    while (time() - start_time) < args.time:
-        for i in range(3):
-            rtt = fetch_html(net)
-            lista_rtts.append(rtt)
+    n=0
+    while True:
+        l1 = fetch_html(net)
+        l2 = fetch_html(net)
+        l3 = fetch_html(net)
+        print(f"Latency: {l1} {l2} {l3}")
+        lista_rtts.append(l1)
+        lista_rtts.append(l2)
+        lista_rtts.append(l3)
+        soma_rtts += l1+l2+l3
+        n+=3
+        # do the measurement (say) 3 times.
         sleep(5)
-        print("%.1fs left..." % (args.time - time()))
+        now = time()
+        delta = now - start_time
+        if delta > args.time:
+            break
+        print("%.1fs left..." % (args.time - delta))
 
-    avg = sum(list_rtts) / len(list_rtts)
-    print(f"Media: {avg}")
+    avg = soma_rtts/n
+    print("media: "+str(avg))
+    
+    aux = 0
+    numerador = 0
+    for rtt in lista_rtts:
+    	aux = (rtt - avg)**2
+    	numerador += aux
 
-    dev = sum((rtt - avg)**2 for rtt in lista_rtts) / len(lista_rtts)
-    print(f"Desvio padrão: {dev}")
+    dev = math.sqrt(numerador/n)
+
+    print("desvio padrao: "+str(dev))
+
 
     # TODO: compute average (and standard deviation) of the fetch
     # times.  You don't need to plot them.  Just note it in your
@@ -202,7 +229,7 @@ def bufferbloat():
     net.stop()
     # Ensure that all processes you create within Mininet are killed.
     # Sometimes they require manual killing.
-    Popen("pgrep -f webserver.py | xargs kill -9", shell=True).wait()
+    #Popen("pgrep -f webserver.py | xargs kill -9", shell=True).wait()
 
 if __name__ == "__main__":
     bufferbloat()

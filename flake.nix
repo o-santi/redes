@@ -19,11 +19,14 @@
   in {
     devShells.x86_64-linux.default = pkgs.mkShell {
       buildInputs = with pkgs; [
+        cmake
+        cargo
+        curlHTTP3
+        openssl
         openvswitch
         mininet
         iperf
         inetutils
-        libcgroup
         python-env
         (texlive.combine {
           inherit (texlive) scheme-basic wrapfig etoolbox xcolor

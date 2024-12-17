@@ -41,9 +41,9 @@ Isto irá rodar os dois casos de teste (\code{max\_queue=20} e \code{max\_queue=
 No caso \code{q=20}, o tempo médio de busca da página é de 3,30 segundos, com um desvio padrão de 0,82.
 \begin{figure}[h!]
   \centering
-  \includegraphics[width=0.5\columnwidth]{./bufferbloat/reno-rtt-q20.png}
+  \includegraphics[width=0.5\columnwidth]{./bufferbloat/bb-q20/reno-rtt-q20.png}
   \caption{Tempo de resposta dos pings ao longo da duração do teste.}
-  \includegraphics[width=0.5\columnwidth]{./bufferbloat/reno-buffer-q20.png}
+  \includegraphics[width=0.5\columnwidth]{./bufferbloat/bb-q20/reno-buffer-q20.png}
   \caption{Número de pacotes na fila do switch ao longo do teste.}
 \end{figure}
 
@@ -53,9 +53,9 @@ Já no caso \code{q=100}, o tempo médio é de 9,96 segundos, com um desvio padr
 
 \begin{figure}[h!]
   \centering
-  \includegraphics[width=0.5\columnwidth]{./bufferbloat/reno-rtt-q100.png}
+  \includegraphics[width=0.5\columnwidth]{./bufferbloat/bb-q100/reno-rtt-q100.png}
   \caption{Tempo de resposta dos pings ao longo da duração do teste.}
-  \includegraphics[width=0.5\columnwidth]{./bufferbloat/reno-buffer-q100.png}
+  \includegraphics[width=0.5\columnwidth]{./bufferbloat/bb-q100/reno-buffer-q100.png}
   \caption{Número de pacotes na fila do switch ao longo do teste.}
 \end{figure}
 
@@ -84,7 +84,58 @@ Dos que visam melhorar a rede, vale ressaltar os algorítmos \code{CoDel} (\text
 
 Dos que visam melhorar as pontas da conexão, destaca-se uma implementação do protocolo TCP utilizando um algoritmo de congestão diferente do \code{Reno}: o \textit{Bottleneck Bandwidth and Round-trip propagation time} (\code{BBR}). Diferentemente do \code{Reno}, que utiliza a perda de pacotes para detectar congestionamento e baixas taixas de transmissão, o \code{BBR} constroi um modelo da rede, utilizandos amostras de pacotes para medir a taxa de transmissão e o \textit{Round Trip Time} (\code{RTT}).
 
-%% \section{Parte 3}
+\section{Parte 3}
+
+Para gerar os dados utilizando o método BBR, usamos o script \code{bufferbloat/run\_bbr.sh}.
+
+\subsection{Qual é o tempo médio de busca da página da web e seu desvio padrão quando q=20 e q=100?}
+No caso \code{q=20}, o tempo médio de busca da página é de 2,47 segundos, com um desvio padrão de 1,27.
+
+\begin{figure}[h!]
+  \centering
+  \includegraphics[width=0.5\columnwidth]{./bufferbloat/bb-q20/bbr-rtt.jpg}
+  \caption{Tempo de resposta dos pings ao longo da duração do teste.}
+  \includegraphics[width=0.5\columnwidth]{./bufferbloat/bb-q20/bbr-buffer.jpg}
+  \caption{Número de pacotes na fila do switch ao longo do teste.}
+\end{figure}
+
+\newpage
+
+No caso \code{q=100}, o tempo médio de busca da página é de 1,78 segundos, com um desvio padrão de 0,05.
+
+\begin{figure}[h!]
+  \centering
+  \includegraphics[width=0.5\columnwidth]{./bufferbloat/bb-q100/bbr-rtt.jpg}
+  \caption{Tempo de resposta dos pings ao longo da duração do teste.}
+  \includegraphics[width=0.5\columnwidth]{./bufferbloat/bb-q100/bbr-buffer.jpg}
+  \caption{Número de pacotes na fila do switch ao longo do teste.}
+\end{figure}
+
+
+\subsection{Compare o tempo de busca da página web entre q=20 e q=100 da Parte 3. Qual tamanho da fila fornece um tempo de busca menor? Como isso é diferente da Parte 2?}
+
+Vemos que o tempo quando \code{q=100} é consideravelmente menor do que quando \code{q=20} - aproximadamente 40\% mais rápido. Esse resultado contrasta com o método de controle de congestão Reno, onde a fila maior causa tem um tempo médio 3 vezes maior.
+
+\subsection{Você vê a diferença nos gráficos de tamanho de fila da Parte 2 e da Parte 3? Dê uma breve explicação para o resultado que você vê.}
+
+No gráfico do método Reno, vemos que tanto o RTT quanto o tamanho do buffer tendem a sempre crescer, e nunca voltam a um estado ``vazio''. No caso do BBR, vemos que, ainda que o buffer fique cheio (no caso \code{q=20}) ele ainda sim tende a voltar para um estado vazio, sem crescimento indefinido. Por isso, vemos que o tempo médio de resposta no caso \code{q=100} do BBR não possui quase nenhuma variância, tendo um desvio padrão de apenas 0,05. É importante ressaltar também que o método BBR teve tempo de resposta médio consideravelmente menor, em ambos os casos testados.
+
+\subsection{Você acha que resolvemos o problema do bufferbloat? Explique seu raciocínio.}
+
+O caso de estudo utilizado é simplório demais para que possamos afirmar com certeza que o problema do bufferbloat é resolvido pelo algoritmo BBR, pois só considera um caso específico de fluxo contínuo de pacotes TCP, com latência não muito importante. Para determinar se o bufferbloat fora resolvido, seria necessário analizar uma ampla gama de casos mais complexos, envolvendo sistemas com fluxo sensível à latência e com muito mais pacotes (por exemplo, \textit{streaming} de vídeo ou acesso de muitas pessoas à internet).
+
+Ainda sim, para o caso testado, vemos que o buffer nunca chega a ficar cheio sob o BBR no caso \code{q=100}, com um máximo de 35 a 40 pacotes na fila. Logo, podemos concluir que, para esse caso específico, o método TCP BBR resolve sim o bufferbloat, pois aumentar o buffer não implica em piora da qualidade do sistema - pelo contrário, significou melhora no tempo médio de resposta.
+
+\section{Parte 4}
+
+Para analizar o protocolo QUIC, algumas modificações foram feitas ao arquivo \code{bufferbloat.py}, para utilizar binários gerados pela implementação do protocolo do Cloudflare em Rust, chamada \href{https://github.com/cloudflare/quiche}{quiche}. Assim, o arquivo \code{bufferbloat\_quic.py} apresenta as seguintes modificações:
+\begin{enumerate}
+\item A implementação do servidor, que antes era feita rodando \code{python webserver.py}, passa a ser feita pelo binário \code{~/redes/bin/quiche-server}. Para gerá-lo, clonamos o repositório do quiche, seguindo as instruções do repositório, e rodamos \code{cd <repositorio-quiche> \&\& cargo build --bin quiche-server --target-dir ~/redes/bin}.
+\item A implementação do cliente, que antes era feita rodando \code{curl}, passa a ser feita pelo binário \code{~/redes/bin/quiche-client}. Para gerá-lo, rodamos \code{cd <repositorio-quiche> \&\& cargo build --bin quiche-client --target-dir ~/redes/bin}.
+\item A implementação do \code{iperf} fora trocada pelo binário \href{https://github.com/rbruenig/qperf}{qperf}, para medir a performance da rede, já que a ferramenta \code{iperf} não consegue, por padrão, entender o protocolo QUIC.
+\end{enumerate}
+
+Ao rodar o arquivo modificado, geramos as seguintes imagens:
 
 
 \end{document}
