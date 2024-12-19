@@ -5,6 +5,7 @@
 \usepackage{xcolor}
 \usepackage{graphicx}
 \usepackage{amsmath}
+\usepackage{lmodern}
 
 \title{Teleprocessamento e Redes - Relatório do trabalho final}
 \author{
@@ -130,28 +131,36 @@ Ainda sim, para o caso testado, vemos que o buffer nunca chega a ficar cheio sob
 
 Para analizar o protocolo QUIC, algumas modificações foram feitas ao arquivo \code{bufferbloat.py}, para utilizar binários gerados pela implementação do protocolo do Cloudflare em Rust, chamada \href{https://github.com/cloudflare/quiche}{quiche}. Assim, o arquivo \code{bufferbloat\_quic.py} apresenta as seguintes modificações:
 \begin{enumerate}
-\item A implementação do servidor, que antes era feita rodando \code{python webserver.py}, passa a ser feita pelo binário \code{~/redes/bin/quiche-server}. Para gerá-lo, clonamos o repositório do quiche, seguindo as instruções do repositório, e rodamos \code{cd <repositorio-quiche> \&\& cargo build --bin quiche-server --target-dir ~/redes/bin}.
-\item A implementação do cliente, que antes era feita rodando \code{curl}, passa a ser feita pelo binário \code{~/redes/bin/quiche-client}. Para gerá-lo, rodamos \code{cd <repositorio-quiche> \&\& cargo build --bin quiche-client --target-dir ~/redes/bin}.
+\item A implementação do servidor, que antes era feita rodando \code{python webserver.py}, passa a ser feita pelo binário \code{~/redes/bin/quiche-server}. Para gerá-lo, clonamos o repositório do quiche, seguindo as instruções do repositório, e rodamos
+\begin{verbatim}
+cd <quiche-repositorio>
+cargo build --bin quiche-server --target-dir \texttildelow/redes/bin
+\end{verbatim}
+\item A implementação do cliente, que antes era feita rodando \code{curl}, passa a ser feita pelo binário \code{\texttildelow/redes/bin/quiche-client}. Para gerá-lo, rodamos 
+  \begin{verbatim}
+cd <quiche-repositorio>
+cargo build --bin quiche-client --target-dir \texttildelow/redes/bin
+\end{verbatim}
 \item A implementação do \code{iperf} fora trocada pelo binário \href{https://github.com/rbruenig/qperf}{qperf}, para medir a performance da rede, já que a ferramenta \code{iperf} não consegue, por padrão, entender o protocolo QUIC.
 \end{enumerate}
 
 Ao rodar o arquivo modificado, geramos o seguinte gráfico para o caso \code{q=20}:
 
-\begin{figure}[h!]
+\begin{figure}[ht!]
   \centering
-  \includegraphics[width=0.7\columnwidth]{./bufferbloat/bb-q20/quic-rtt.jpg}
+  \includegraphics[width=0.5\columnwidth]{./bufferbloat/bb-q20/quic-rtt.jpg}
   \caption{Tempo de resposta dos pings ao longo da duração do teste.}
-  \includegraphics[width=0.7\columnwidth]{./bufferbloat/bb-q20/quic-buffer.jpg}
+  \includegraphics[width=0.5\columnwidth]{./bufferbloat/bb-q20/quic-buffer.jpg}
   \caption{Número de pacotes na fila do switch ao longo do teste.}
 \end{figure}
 
 Vemos que o tempo médio de resposta é de 1,76 segundos, com desvio padrão de 0,15. Respectivamente, para o caso \code{q=100}:
 
-\begin{figure}[h!]
+\begin{figure}[ht!]
   \centering
-  \includegraphics[width=0.7\columnwidth]{./bufferbloat/bb-q100/quic-rtt.jpg}
+  \includegraphics[width=0.5\columnwidth]{./bufferbloat/bb-q100/quic-rtt.jpg}
   \caption{Tempo de resposta dos pings ao longo da duração do teste.}
-  \includegraphics[width=0.7\columnwidth]{./bufferbloat/bb-q100/quic-buffer.jpg}
+  \includegraphics[width=0.5\columnwidth]{./bufferbloat/bb-q100/quic-buffer.jpg}
   \caption{Número de pacotes na fila do switch ao longo do teste.}
 \end{figure}
 
