@@ -205,5 +205,71 @@ Com a fila máxima em 100 pacotes, vimos que a fila não chegou a ficar cheia, e
   \caption{Número de pacotes na fila do link gargalo do switch 0 com tamanho máximo da fila igual a 100 pacotes.}
 \end{figure}
 
+\subsection{BBR}
+
+O código para a parte do BBR se encontra no arquivo $bufferbloat_bbr_part5.py$, que é executado pelo script $run_bbr_part5.sh$.
+
+Como no exemplo do QUIC, fica claro que no BBR tambem tivemos uma amostra de congestionamento em alguns momentos indicado pela variação na taxa de transmissao e pela latencia. Vemos tambem como BBR  mais agressivo, no tratamento dos congestionamentos, percebemos pelos picos acentuados . 
+
+Observamos uma média de aproximados 0.5 segundos para recuperar os arquivos, com desvio padrão de 0.39.
+
+
+\begin{figure}[ht!]
+	\centering
+	\includegraphics[width=0.5\columnwidth]{./bufferbloat/bb-q20/bbr-part5-buffer-q20.jpg}
+	\caption{Número de pacotes na fila do link gargalo do switch 0 com tamanho máximo da fila igual a 20 pacotes.}
+\end{figure}
+
+Importante salientar que por conta da natureza do fluxo o buffer nunca de fato chegou a 100
+
+
+Com uma média de 1.84 segundos, e desvio padrão igual a 0.22.
+
+\begin{figure}[ht!]
+	
+	\centering
+	\includegraphics[width=0.5\columnwidth]{./bufferbloat/bb-q100/bbr-part5-buffer-q100.jpg}
+	\caption{Número de pacotes na fila do link gargalo do switch 0 com tamanho máximo da fila igual a 100 pacotes.}
+\end{figure}
+
+\subsection{RENO}
+
+O código para a parte do RENO se encontra no arquivo $bufferbloat_reno_part5.py$, que é executado pelo script $run_reno_part5.sh$.
+
+Vemos como o RENO se difere do BBR com picos mais constantes e vales tambem mais prolongados, pois sua natureza e menos agressiva ao tratar os congestionamentos 
+
+Observamos uma média de aproximados 0.45 segundos para recuperar os arquivos, com desvio padrão de 0.33.
+
+\begin{figure}[ht!]
+	\centering
+	\includegraphics[width=0.5\columnwidth]{./bufferbloat/bb-q20/reno-part5-buffer-q20.jpg}
+	\caption{Número de pacotes na fila do link gargalo do switch 0 com tamanho máximo da fila igual a 20 pacotes.}
+\end{figure}
+
+
+Com uma média de 0.58 segundos, e desvio padrão igual a 0.33.
+
+\begin{figure}[ht!]
+	\centering
+	\includegraphics[width=0.5\columnwidth]{./bufferbloat/bb-q100/reno-part5-buffer-q100.jpg}
+	\caption{Número de pacotes na fila do link gargalo do switch 0 com tamanho máximo da fila igual a 100 pacotes.}
+\end{figure}
+
+
+
+
+\subsection{Respostas}
+
+1. Essa resposta pode depender do fluxo na rede, e também do mecanismo de controle de congestão utilizado. Claro, se conhecermos o número de fluxos passando pelo roteador, podemos fazer como mencionado no item 5 e definir o tamanho do buffer como RTT * C/sqrt(N), ou fazer uma estimativa para N. é importante lembrar que buffers muito grandes podem levar justamente ao problema do bufferbloat, com esperas muito longas em fila, além de timeouts desnecessários gerando menor "goodput"
+
+2. Porque o tamanho ótimo do buffer de um roteador pode mudar a depender do fluxo na rede, fluxo este que será influenciado por elementos da camada de rede como os mecanismos de roteamento; e diferentes protocolos da camada de transporte, por exemplo os diferentes algoritmos de controle de congestão do TCP, vão influenciar como o buffer será utilizado. No BBR, por exemplo, a tendência é reduzir a transmissão de dados antes do buffer ficar  muito cheio. As diferentes formas de se recuperar de perdas também impactam os buffers,  como AIMD vs cubic.
+
+3. Não. Em si, aumentar o tamanho do buffer não leva necessariamente ao aumento de throughput. Este depende da capacidade de transmissão nos links envolvidos. O que pode ocorrer com o  aumento de buffer (e consequente ocorrência de bufferbloat) é a diminuição do goodput, uma vez que pelo aumento do tempo de espera em fila, pode haver timeouts que não refletem uma perda, gerando mais pacotes sendo enviados que reflitam um mesmo dado. De fato há uma tendência de haver menos perdas por falta de espaço em buffer. Mas o bufferbloat pode gerar aumento do delay (em específico, o delay entre enviar um dado pela rede e este ser corretamente recebido).
+
+4. Sim. Isso é descrito no item anterior, por estar relacionado com redução do goodput.	
+
+5. Essa proposta, que era inicialmente RTT*C, tinha o intuito de estimar que, com uma capacidade do link de C bits/s e um round-trip-time de RTT segundos, seriam enviados C bits por segundo a cada RTT segundos, resultando na necessidade de se acomodar C bits no buffer do roteador. Como  pode haver N fluxos diferentes na rede, surgiu a proposta mais "completa" de RTT*C/sqrt(N).  Um controlador SDN pode ser útil para observar os fluxos na rede e estimar, através dos cabeçalhos (com diferentes endereços), a quantidade de fluxos na rede a cada intervalo de tempo para atualizar o espaço em buffer.
+
+6. O tamanho do buffer pode mudar ao longo do tempo no sentido de que o roteador pode ter um certo tamanho máximo, físico, do seu buffer, é físico, mas o roteador pode ter limites diferentes ao longo do tempo para  o espaço alocado para a fila, de modo a empregar estratégias que usam o tamanho do buffer para reduzir a latência na rede. 
 
 \end{document}
