@@ -23,7 +23,7 @@
 
 \section{Introdução}
 
-Neste relatório iremos responder as perguntas relacionadas à parte 2 do trabalho final. O código está disponível no seguinte repositório do github: {\color{blue} \href{https://github.com/o-santi/redes}{github.com/o-santi/redes}}.
+Neste relatório iremos responder as perguntas relacionadas ao trabalho final. O código está disponível no seguinte repositório do github: {\color{blue} \href{https://github.com/o-santi/redes}{github.com/o-santi/redes}}.
 
 Para reproduzir os resultados, deve-se instanciar uma máquina virtual Ubuntu usando Vagrant, assim como descrito em {\color{blue} \href{https://github.com/kaichengyan/mininet-vagrant}{github.com/kaichengyan/mininet-vagrant}}. Uma vez dentro da VM, clonamos o repositório git para uma pasta interna, e rodamos o arquivo \code{run.sh}.
 \begin{verbatim}
@@ -129,7 +129,7 @@ Ainda sim, para o caso testado, vemos que o buffer nunca chega a ficar cheio sob
 
 \section{Parte 4}
 
-Para analizar o protocolo QUIC, algumas modificações foram feitas ao arquivo \code{bufferbloat.py}, para utilizar binários gerados pela implementação do protocolo do Cloudflare em Rust, chamada \href{https://github.com/cloudflare/quiche}{quiche}. Assim, o arquivo \code{bufferbloat\_quic.py} apresenta as seguintes modificações:
+Para analisar o protocolo QUIC, algumas modificações foram feitas ao arquivo \code{bufferbloat.py}, para utilizar binários gerados pela implementação do protocolo do Cloudflare em Rust, chamada \href{https://github.com/cloudflare/quiche}{quiche}. Assim, o arquivo \code{bufferbloat\_quic.py} apresenta as seguintes modificações:
 \begin{enumerate}
 \item A implementação do servidor, que antes era feita rodando \code{python webserver.py}, passa a ser feita pelo binário \code{~/redes/bin/quiche-server}. Para gerá-lo, clonamos o repositório do quiche, seguindo as instruções do repositório, e rodamos
 \begin{verbatim}
@@ -171,5 +171,39 @@ Notamos que, assim como o TCP Reno, o tamanho do buffer ser maior implicou em um
 Isso pode ser explicado pela diferença entre o protocolo UDP e TCP. No protocolo TCP, há contínua comunicação entre ambos os lados, tanto do que manda os pacotes segmentados quanto pelo lado que os recebe, respondendo com pacotes de reconhecimento de chegada de cada pacote. Por outro lado, pacotes UDP não possuem nenhum tipo de proteção contra corrupção ou perda de pacotes, e podem ser vistos como pacotes isolados na rede. Como o QUIC utiliza UDP, é esperado que a quantidade de pacotes na rede deva ser consideravelmente menor, e como não há resposta do servidor, quando os pacotes são enviados a fila rapidamente esvazia.
 
 Vemos também que, apesar de sofrer do problema de \textit{bufferbloat}, o protocolo QUIC não só é muito mais rápido mas também muito mais estável do que o protocolo TCP Reno para este caso estudado. Assim, ele deve com certeza ser considerado como um forte candidato para casos onde várias conexões devem ser feitas concorrentemente.
+
+
+
+\section{Parte 5}
+
+Para esta seção, escolhemos a opção 1: simulamos a transferência de arquivos pequenos e frequentes. Para isso, colocamos alguns arquivos pequenos (entre 10 e 60KB) na pasta \code{part5} e colocamos 10 hosts na rede requisitando, aleatoriamente, algum desses arquivos ao host h1, com intervalo de um décimo de segundo entre cada requisição. Ao todo, durante o teste, cada um dos 10 hosts clientes requisita 10 arquivos ao host 1.
+
+Para conseguirmos monitorar a fila no switch, fizemos uma mudança na topologia: O host h1 segue conectado ao switch s0, com banda de 1Gb/s. Mas o switch 0 passa a estar conectado ao switch 1, com um link (gargalo) de banda 1.5Mb/s. Esse switch está conectado aos hosts 2, 3, 4... 11 com um link também de 1.5Mb/s. Assim, enquanto os hosts 2 ao 10 fazem as requisições, monitoramos a fila do switch 0 no link entre este switch e o switch 1. Note que o tráfego de todas as requisições ao host 1 passará por lá. 
+
+Fizemos o mesmo teste utilizando QUIC, BBR e Reno. 
+
+\subsection{QUIC}
+
+O código para a parte do QUIC se encontra no arquivo bufferbloat_quic_part5.py, que é executado pelo script run_quic_part5.sh.
+
+Com a fila máxima em 20 pacotes, houve congestão nesta simulação, como se pode ver na imagem, com a fila atingindo frequentemente os 20 pacotes. Mas a rede se recuperou rapidamente dos eventuais \textit{timeouts}, e a quantidade de pacotes na fila (que reflete as janelas de congestão dos hosts), voltou rapidamente aos 20 pacotes apesar das quedas abruptas. 
+
+Observamos uma média de aproximados 1.81 segundos para recuperar os arquivos, com desvio padrão de 1.96.
+
+\begin{figure}[ht!]
+  \centering
+  \includegraphics[width=0.5\columnwidth]{./bufferbloat/bb-q20/quic-part5-buffer-q20.jpg}
+  \caption{Número de pacotes na fila do link gargalo do switch 0 com tamanho máximo da fila igual a 20 pacotes.}
+\end{figure}
+
+
+Com a fila máxima em 100 pacotes, vimos que a fila não chegou a ficar cheia, e os picos no número de pacotes parecem refletir um fluxo na rede que não chegou a congestionar completamente o switch. Desta forma, nota-se que para efeitos dessa simulação, a rede sob o protocolo QUIC foi capaz de lidar com o fluxo na rede. Mas é interessante observar que, mesmo com a fila maior que não ficou cheia, o tempo médio para recuperar os arquivos não melhorou significativamente (sendo um pouco maior, na verdade), com uma média de 1.84 segundos, e desvio padrão igual a 2.26.
+
+\begin{figure}[ht!]
+  \centering
+  \includegraphics[width=0.5\columnwidth]{./bufferbloat/bb-q100/quic-part5-buffer-q100.jpg}
+  \caption{Número de pacotes na fila do link gargalo do switch 0 com tamanho máximo da fila igual a 100 pacotes.}
+\end{figure}
+
 
 \end{document}
