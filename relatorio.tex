@@ -209,7 +209,8 @@ Com a fila máxima em 100 pacotes, vimos que a fila não chegou a ficar cheia, e
 
 O código para a parte do BBR se encontra no arquivo $bufferbloat_bbr_part5.py$, que é executado pelo script $run_bbr_part5.sh$.
 
-Como no exemplo do QUIC, fica claro que no BBR tambem tivemos uma amostra de congestionamento em alguns momentos indicado pela variação na taxa de transmissao e pela latencia. Vemos tambem como BBR  mais agressivo, no tratamento dos congestionamentos, percebemos pelos picos acentuados . 
+Assim como no exemplo do QUIC, observamos que, no caso do BBR, também ocorre uma amostra de congestionamento em determinados momentos. Isso é indicado pela variação na taxa de transmissão e pela latência. Além disso, é evidente que o BBR adota uma abordagem mais agressiva no tratamento dos congestionamentos, o que é perceptível pelos picos mais acentuados. 
+Na simulação, foram realizadas trocas de arquivos para avaliar o comportamento do BBR TCP em cenários de congestionamento. Para o caso de um tamanho máximo de fila de 20 pacotes, é possível observar oscilações frequentes no número de pacotes na fila. Essa oscilação indica que o protocolo BBR é eficaz em evitar o crescimento excessivo do buffer, conseguindo manter o gargalo relativamente controlado.O BBR tende a diminuir a taxa de transmissão de pacotes antes da fila ficar cheia causando perdas.
 
 Observamos uma média de aproximados 0.5 segundos para recuperar os arquivos, com desvio padrão de 0.39.
 
@@ -220,10 +221,10 @@ Observamos uma média de aproximados 0.5 segundos para recuperar os arquivos, co
 	\caption{Número de pacotes na fila do link gargalo do switch 0 com tamanho máximo da fila igual a 20 pacotes.}
 \end{figure}
 
-Importante salientar que por conta da natureza do fluxo o buffer nunca de fato chegou a 100
+Com 100 as oscilações se tornam mais amplas, com picos que chegam a 30 pacotes.Mostrando que o aumento do tamanho da fila permite maior acumulação de pacotes antes que o congestionamento seja tratado.
+Importante salientar que por conta da natureza do fluxo o buffer nunca de fato chegou a 100.
 
-
-Com uma média de 1.84 segundos, e desvio padrão igual a 0.22.
+Sabendo que para recuperar os arquivos temos uma média de 0.41 segundos, e desvio padrão igual a 0.22.
 
 \begin{figure}[ht!]
 	
@@ -232,13 +233,15 @@ Com uma média de 1.84 segundos, e desvio padrão igual a 0.22.
 	\caption{Número de pacotes na fila do link gargalo do switch 0 com tamanho máximo da fila igual a 100 pacotes.}
 \end{figure}
 
+
 \subsection{RENO}
 
 O código para a parte do RENO se encontra no arquivo $bufferbloat_reno_part5.py$, que é executado pelo script $run_reno_part5.sh$.
 
-Vemos como o RENO se difere do BBR com picos mais constantes e vales tambem mais prolongados, pois sua natureza e menos agressiva ao tratar os congestionamentos 
+Vemos como o RENO se difere do BBR com picos mais constantes e vales também mais prolongados(o que mostra que a fila é subutilizada), pois sua natureza é menos agressiva ao tratar os congestionamentos. O RENO tenta equilibrar \textit Throughput e estabilidade.
 
 Observamos uma média de aproximados 0.45 segundos para recuperar os arquivos, com desvio padrão de 0.33.
+
 
 \begin{figure}[ht!]
 	\centering
@@ -247,7 +250,8 @@ Observamos uma média de aproximados 0.45 segundos para recuperar os arquivos, c
 \end{figure}
 
 
-Com uma média de 0.58 segundos, e desvio padrão igual a 0.33.
+
+Analisamos que o tempo médio para recuperar arquivos foi de 0.58 segundos, e desvio padrão igual a 0.33.
 
 \begin{figure}[ht!]
 	\centering
@@ -255,10 +259,12 @@ Com uma média de 0.58 segundos, e desvio padrão igual a 0.33.
 	\caption{Número de pacotes na fila do link gargalo do switch 0 com tamanho máximo da fila igual a 100 pacotes.}
 \end{figure}
 
+Com 100 fica ainda mais claro que o RENO é sensível a aumentar o buffer permitindo fila maiores, como vemos de 40 no caso, mostrando mais oscilação. Concluindo então que o RENO é uma alternativa menos eficiente que o BBR na questão de uso do buffer no cenário de maior capacidade.
 
 
 
-\subsection{Respostas}
+
+\section{Respostas}
 
 1. Essa resposta pode depender do fluxo na rede, e também do mecanismo de controle de congestão utilizado. Claro, se conhecermos o número de fluxos passando pelo roteador, podemos fazer como mencionado no item 5 e definir o tamanho do buffer como RTT * C/sqrt(N), ou fazer uma estimativa para N. é importante lembrar que buffers muito grandes podem levar justamente ao problema do bufferbloat, com esperas muito longas em fila, além de timeouts desnecessários gerando menor "goodput"
 
